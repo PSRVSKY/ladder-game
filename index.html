@@ -253,7 +253,7 @@
     .pass-hint strong { color: var(--gold); }
 
     /* ===== RESULTS SCREEN ===== */
-    .results-screen { padding: 0; max-height: 85vh; overflow-y: auto; }
+    .results-screen { padding: 0; overflow-y: visible; }
     .results-header {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       padding: 20px 16px;
@@ -408,8 +408,11 @@
       align-items: flex-start;
       z-index: 100;
       backdrop-filter: blur(10px);
-      padding: 16px 0;
+      padding: 16px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
     }
     .overlay.show { display: flex; }
     .modal {
@@ -419,7 +422,8 @@
       max-width: 400px;
       border: 1px solid var(--border);
       animation: pop 0.3s ease;
-      overflow: hidden;
+      overflow: visible;
+      margin: auto;
     }
     @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
@@ -468,6 +472,7 @@
     .start-btn { width: 100%; margin-top: 8px; }
     .hidden { display: none !important; }
   </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -866,6 +871,12 @@
 
     document.getElementById('resultsContent').innerHTML = resultsHTML;
     document.getElementById('modal').classList.add('show');
+
+    // Разрешаем скролл в overlay на мобильных
+    const overlay = document.getElementById('modal');
+    overlay.addEventListener('touchmove', function(e) {
+      e.stopPropagation();
+    }, { passive: true });
 
     if (tg) {
       tg.HapticFeedback.notificationOccurred('success');
