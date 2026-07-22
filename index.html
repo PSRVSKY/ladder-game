@@ -159,6 +159,12 @@
       text-shadow: 0 0 25px rgba(0,212,170,0.25);
       letter-spacing: 2px;
     }
+    .timer.danger {
+      color: var(--danger);
+      text-shadow: 0 0 25px rgba(255,71,87,0.3);
+      animation: blink 0.5s infinite;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
     .current-player-name {
       font-size: 13px;
       font-weight: 700;
@@ -169,6 +175,12 @@
       color: var(--muted);
       font-weight: 400;
       font-size: 11px;
+    }
+    .random-target {
+      font-size: 11px;
+      color: var(--rest);
+      margin-top: 3px;
+      font-weight: 600;
     }
 
     .actions {
@@ -385,7 +397,6 @@
       line-height: 1.5;
     }
     .result-rounds-detail span.round-done { color: var(--accent); font-weight: 600; }
-    .result-rounds-detail span.round-fail { color: var(--danger); font-weight: 600; }
 
     .results-actions {
       padding: 10px 14px 16px;
@@ -426,6 +437,14 @@
       margin: auto;
     }
     @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 200;
+    }
 
     .setup { padding: 16px; }
     .setup h2 { text-align: center; margin-bottom: 16px; font-size: 16px; }
@@ -471,9 +490,36 @@
     .chip .remove { cursor: pointer; color: var(--danger); font-weight: 700; font-size: 13px; }
     .start-btn { width: 100%; margin-top: 8px; }
     .hidden { display: none !important; }
+
+    .mode-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .mode-btn {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .mode-btn.selected {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, #0d3328 0%, #1a1a2e 100%);
+    }
+    .mode-btn .mode-emoji { font-size: 20px; display: block; margin-bottom: 3px; }
+    .mode-btn .mode-name { font-size: 11px; font-weight: 600; }
+    .mode-btn .mode-desc { font-size: 8px; color: var(--muted); margin-top: 2px; }
   </style>
 </head>
 <body>
+
+<canvas id="confetti-canvas"></canvas>
 
 <div class="phone">
   <!-- Экран настройки -->
@@ -492,6 +538,31 @@
         <option>Берпи</option>
         <option>Планка (сек)</option>
       </select>
+    </div>
+    <div class="input-group">
+      <label>Режим игры</label>
+      <div class="mode-selector" id="modeSelector">
+        <div class="mode-btn selected" data-mode="classic" onclick="selectMode(this)">
+          <span class="mode-emoji">📈</span>
+          <span class="mode-name">Классика</span>
+          <span class="mode-desc">1, 2, 3, 4...</span>
+        </div>
+        <div class="mode-btn" data-mode="random" onclick="selectMode(this)">
+          <span class="mode-emoji">🎲</span>
+          <span class="mode-name">Рандом</span>
+          <span class="mode-desc">3, 7, 2, 9...</span>
+        </div>
+        <div class="mode-btn" data-mode="timed" onclick="selectMode(this)">
+          <span class="mode-emoji">⏱️</span>
+          <span class="mode-name">На время</span>
+          <span class="mode-desc">30 сек на ход</span>
+        </div>
+        <div class="mode-btn" data-mode="reverse" onclick="selectMode(this)">
+          <span class="mode-emoji">📉</span>
+          <span class="mode-name">Обратная</span>
+          <span class="mode-desc">10, 9, 8, 7...</span>
+        </div>
+      </div>
     </div>
     <div class="input-group">
       <label>Игроки (введите всех)</label>
@@ -538,6 +609,7 @@
       <div class="current-player-name" id="currentPlayerName">
         <span class="label">Сейчас ходит:</span> —
       </div>
+      <div class="random-target" id="randomTarget"></div>
     </div>
 
     <div class="actions" id="actionButtons">
@@ -558,7 +630,140 @@
 </div>
 
 <script>
-  // Telegram WebApp init
+  // ===== AUDIO ENGINE =====
+  let audioCtx = null;
+
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playSound(type) {
+    try {
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+
+      switch(type) {
+        case 'start':
+          osc.frequency.setValueAtTime(523, now);
+          osc.frequency.exponentialRampToValueAtTime(784, now + 0.1);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+          break;
+        case 'done':
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.exponentialRampToValueAtTime(1320, now + 0.1);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+          break;
+        case 'giveup':
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+          break;
+        case 'win':
+          [523, 659, 784, 1047].forEach((freq, i) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.frequency.value = freq;
+            g.gain.setValueAtTime(0.15, now + i * 0.12);
+            g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.3);
+            o.start(now + i * 0.12);
+            o.stop(now + i * 0.12 + 0.3);
+          });
+          break;
+        case 'newround':
+          osc.frequency.setValueAtTime(660, now);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          osc.start(now);
+          osc.stop(now + 0.1);
+          break;
+        case 'tick':
+          osc.frequency.setValueAtTime(1000, now);
+          gain.gain.setValueAtTime(0.05, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+          osc.start(now);
+          osc.stop(now + 0.05);
+          break;
+      }
+    } catch(e) { console.log('Audio error', e); }
+  }
+
+  // ===== CONFETTI =====
+  function launchConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const colors = ['#ffd700', '#00d4aa', '#ff4757', '#667eea', '#f39c12', '#fff'];
+
+    for (let i = 0; i < 150; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        vx: (Math.random() - 0.5) * 4,
+        vy: Math.random() * 3 + 2,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: Math.random() * 6 + 3,
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 10
+      });
+    }
+
+    let frame = 0;
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let active = false;
+
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.05;
+        p.rotation += p.rotationSpeed;
+
+        if (p.y < canvas.height + 20) {
+          active = true;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation * Math.PI / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+          ctx.restore();
+        }
+      });
+
+      frame++;
+      if (active && frame < 200) {
+        requestAnimationFrame(animate);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+    animate();
+  }
+
+  // ===== TELEGRAM WEBAPP =====
   let tg;
   try {
     tg = window.Telegram.WebApp;
@@ -568,6 +773,7 @@
     tg.setBackgroundColor('#0f0f1a');
   } catch(e) { console.log('Telegram WebApp not available'); }
 
+  // ===== GAME STATE =====
   let players = [];
   let currentRound = 1;
   let currentPlayerIndex = 0;
@@ -576,8 +782,19 @@
   let exercise = 'Приседания';
   let gameId = Math.floor(Math.random() * 900) + 100;
   let gameHistory = [];
+  let gameMode = 'classic';
+  let turnTimerInterval = null;
+  let turnSeconds = 0;
+  let currentTarget = 1;
+  let randomTargets = [];
 
   const defaultNames = ['Ты', 'Сергей', 'Анна', 'Дима', 'Катя'];
+
+  function selectMode(el) {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    gameMode = el.dataset.mode;
+  }
 
   function addPlayer() {
     const input = document.getElementById('playerInput');
@@ -604,7 +821,27 @@
   defaultNames.forEach(n => { if (!players.includes(n)) players.push(n); });
   renderPlayersList();
 
+  function getModeName() {
+    const names = { classic: 'Классика', random: 'Рандом', timed: 'На время', reverse: 'Обратная' };
+    return names[gameMode] || 'Классика';
+  }
+
+  function getTargetForRound(round) {
+    switch(gameMode) {
+      case 'classic': return round;
+      case 'reverse': return Math.max(1, 15 - round + 1);
+      case 'random': 
+        if (!randomTargets[round - 1]) {
+          randomTargets[round - 1] = Math.floor(Math.random() * 10) + 1;
+        }
+        return randomTargets[round - 1];
+      case 'timed': return round;
+      default: return round;
+    }
+  }
+
   function startGame() {
+    initAudio();
     if (players.length < 2) {
       alert('Нужно минимум 2 игрока!');
       return;
@@ -613,7 +850,7 @@
     document.getElementById('setupScreen').classList.add('hidden');
     document.getElementById('gameScreen').classList.remove('hidden');
     document.getElementById('gameTitle').textContent = `ЛЕСЕНКА #${gameId}`;
-    document.getElementById('gameSub').textContent = `${exercise} | ${players.length} игроков`;
+    document.getElementById('gameSub').textContent = `${exercise} | ${getModeName()} | ${players.length} игроков`;
 
     players = players.map((name, i) => ({
       name,
@@ -629,10 +866,13 @@
     currentPlayerIndex = 0;
     gameSeconds = 0;
     gameHistory = [];
+    randomTargets = [];
+    currentTarget = getTargetForRound(1);
 
     startGameTimer();
     startRound();
-    addChat('🎮', `Игра #${gameId} началась! ${exercise}, ${players.length} игроков.`);
+    addChat('🎮', `Игра #${gameId} началась! ${exercise}, ${getModeName()}, ${players.length} игроков.`);
+    playSound('start');
   }
 
   function startGameTimer() {
@@ -651,11 +891,42 @@
     document.getElementById('totalTime').textContent = timeStr;
   }
 
+  function startTurnTimer() {
+    if (gameMode !== 'timed') return;
+    clearInterval(turnTimerInterval);
+    turnSeconds = 30;
+    updateTurnTimerDisplay();
+    turnTimerInterval = setInterval(() => {
+      turnSeconds--;
+      updateTurnTimerDisplay();
+      if (turnSeconds <= 5 && turnSeconds > 0) playSound('tick');
+      if (turnSeconds <= 0) {
+        clearInterval(turnTimerInterval);
+        giveUp();
+      }
+    }, 1000);
+  }
+
+  function updateTurnTimerDisplay() {
+    const timerEl = document.getElementById('timer');
+    const m = Math.floor(turnSeconds / 60).toString().padStart(2, '0');
+    const s = (turnSeconds % 60).toString().padStart(2, '0');
+    timerEl.textContent = `${m}:${s}`;
+    if (turnSeconds <= 5) timerEl.classList.add('danger');
+    else timerEl.classList.remove('danger');
+  }
+
   function startRound() {
     players.forEach(p => { if (p.active) p.done = false; });
     currentPlayerIndex = 0;
-    document.getElementById('statReps').textContent = currentRound;
-    addChat('📢', `Раунд ${currentRound}! Каждый делает ${currentRound} ${getRepsWord(currentRound)}.`);
+    currentTarget = getTargetForRound(currentRound);
+    document.getElementById('statReps').textContent = currentTarget;
+
+    const targetText = gameMode === 'random' ? `Цель: ${currentTarget} reps` : '';
+    document.getElementById('randomTarget').textContent = targetText;
+
+    addChat('📢', `Раунд ${currentRound}! Каждый делает ${currentTarget} ${getRepsWord(currentTarget)}.`);
+    playSound('newround');
     nextTurn();
   }
 
@@ -672,12 +943,14 @@
     while (currentPlayerIndex < players.length) {
       if (players[currentPlayerIndex].active && !players[currentPlayerIndex].done) {
         renderPlayers();
+        if (gameMode === 'timed') startTurnTimer();
         return;
       }
       currentPlayerIndex++;
     }
     currentRound++;
     addChat('🏁', `Раунд ${currentRound - 1} завершён за ${formatTime(gameSeconds)}!`);
+    playSound('newround');
     startRound();
   }
 
@@ -697,7 +970,7 @@
     container.innerHTML = players.map((p, i) => {
       const isActive = i === currentPlayerIndex && p.active && !p.done;
       const repsText = p.active 
-        ? (p.done ? `${currentRound} ${getRepsWord(currentRound)}` : (isActive ? `${currentRound} ${getRepsWord(currentRound)} ⏱` : '...'))
+        ? (p.done ? `${currentTarget} ${getRepsWord(currentTarget)}` : (isActive ? `${currentTarget} ${getRepsWord(currentTarget)} ⏱` : '...'))
         : `выбыл (раунд ${p.outRound})`;
       const repsClass = p.done ? 'done' : (p.active ? '' : 'elim');
       const arrow = isActive ? '→' : (p.done ? '✓' : '');
@@ -720,20 +993,23 @@
     const p = players[currentPlayerIndex];
     if (!p || !p.active || p.done) return;
 
-    p.reps = currentRound;
-    p.totalReps += currentRound;
+    p.reps = currentTarget;
+    p.totalReps += currentTarget;
     p.done = true;
     p.roundsCompleted.push(currentRound);
 
     gameHistory.push({
       player: p.name,
       round: currentRound,
-      reps: currentRound,
+      reps: currentTarget,
       time: gameSeconds,
       action: 'done'
     });
 
-    addChat(p.name, `Сделал ${currentRound} ${getRepsWord(currentRound)}! (всего ${p.totalReps}) 💪`);
+    addChat(p.name, `Сделал ${currentTarget} ${getRepsWord(currentTarget)}! (всего ${p.totalReps}) 💪`);
+    playSound('done');
+
+    if (gameMode === 'timed') clearInterval(turnTimerInterval);
 
     currentPlayerIndex++;
 
@@ -762,6 +1038,9 @@
     });
 
     addChat(p.name, `Сдался на ${currentRound} раунде! Всего сделал: ${p.totalReps} 😵`);
+    playSound('giveup');
+
+    if (gameMode === 'timed') clearInterval(turnTimerInterval);
 
     currentPlayerIndex++;
 
@@ -780,6 +1059,7 @@
 
   function endGame(winner) {
     clearInterval(gameTimerInterval);
+    clearInterval(turnTimerInterval);
 
     const totalTime = formatTime(gameSeconds);
     const totalRepsAll = players.reduce((sum, p) => sum + p.totalReps, 0);
@@ -797,7 +1077,7 @@
       <div class="results-header">
         <div class="trophy">🏆</div>
         <div class="game-title">ИТОГИ ИГРЫ</div>
-        <div class="game-sub">ЛЕСЕНКА #${gameId} · ${exercise}</div>
+        <div class="game-sub">ЛЕСЕНКА #${gameId} · ${exercise} · ${getModeName()}</div>
         <div class="results-summary">
           <div class="results-summary-item">
             <div class="val">${totalTime}</div>
@@ -871,11 +1151,10 @@
     document.getElementById('resultsContent').innerHTML = resultsHTML;
     document.getElementById('modal').classList.add('show');
 
-    // Разрешаем скролл в overlay на мобильных
-    const overlay = document.getElementById('modal');
-    overlay.addEventListener('touchmove', function(e) {
-      e.stopPropagation();
-    }, { passive: true });
+    if (winner) {
+      playSound('win');
+      launchConfetti();
+    }
 
     if (tg) {
       tg.HapticFeedback.notificationOccurred('success');
@@ -887,7 +1166,7 @@
     const totalRepsAll = players.reduce((sum, p) => sum + p.totalReps, 0);
 
     let text = `🏆 ЛЕСЕНКА #${gameId}\n`;
-    text += `${exercise} · ${players.length} игроков\n`;
+    text += `${exercise} · ${getModeName()} · ${players.length} игроков\n`;
     text += `⏱ ${totalTime} · 📊 ${currentRound} раундов\n\n`;
 
     const sorted = [...players].sort((a, b) => b.totalReps - a.totalReps);
@@ -923,6 +1202,9 @@
     renderPlayersList();
     gameId = Math.floor(Math.random() * 900) + 100;
     document.getElementById('timer').textContent = '00:00';
+    document.getElementById('timer').classList.remove('danger');
+    document.getElementById('randomTarget').textContent = '';
+    clearInterval(turnTimerInterval);
   }
 
   function addChat(name, text) {
@@ -934,6 +1216,13 @@
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('modal');
+    overlay.addEventListener('touchmove', function(e) {
+      e.stopPropagation();
+    }, { passive: true });
+  });
 </script>
 
 </body>
