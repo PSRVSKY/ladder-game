@@ -8,29 +8,38 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-    /* Тёмная тема — по умолчанию. Светлая включается классом body.light,
-       который переопределяет те же переменные (см. ниже). Ничего, кроме
-       переменных и мест, где раньше был цветной акцент (teal/gold),
-       в общей структуре не меняется. */
     :root {
-      --bg: #141414;
-      --surface: #1f1f1f;
-      --text: #f2f2f0;
-      --muted: #8a8a8a;
-      --border: #2c2c2c;
-      --invert-bg: #ffffff;
-      --invert-text: #141414;
-      --danger: #ff5b5b;
+      --bg: #0b0e14;
+      --surface: rgba(22, 27, 38, 0.75);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --text: #f2f5fc;
+      --muted: #626e85;
+      --border: #1a2130;
+      --invert-bg: #00ffaa;
+      --invert-text: #0b0e14;
+      --danger: #ff4757;
+      --accent-neon: #00ffaa;
+      --accent-glow: rgba(0, 255, 170, 0.25);
+      --accent-gradient: linear-gradient(135deg, #00ffaa 0%, #00b8ff 100%);
+      --card-bg: rgba(18, 23, 33, 0.65);
+      --card-border: rgba(0, 255, 170, 0.15);
     }
+
     body.light {
-      --bg: #f2f1ee;
-      --surface: #ffffff;
-      --text: #141414;
-      --muted: #7a7a75;
-      --border: #e2e0da;
-      --invert-bg: #141414;
+      --bg: #f0f4f8;
+      --surface: rgba(255, 255, 255, 0.85);
+      --surface-border: rgba(0, 0, 0, 0.06);
+      --text: #0b0e14;
+      --muted: #828d9e;
+      --border: #d0d7de;
+      --invert-bg: #0b0e14;
       --invert-text: #ffffff;
       --danger: #d63447;
+      --accent-neon: #00b88d;
+      --accent-glow: rgba(0, 184, 141, 0.2);
+      --accent-gradient: linear-gradient(135deg, #00b88d 0%, #0088ff 100%);
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --card-border: rgba(0, 184, 141, 0.25);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -49,9 +58,10 @@
       width: 100%;
       max-width: 400px;
       background: var(--bg);
-      border-radius: 24px;
+      border-radius: 28px;
       overflow: hidden;
       border: 1px solid var(--border);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       transition: background 0.25s ease, border-color 0.25s ease;
     }
 
@@ -63,10 +73,19 @@
       gap: 10px;
     }
     .game-title {
-      font-size: 22px;
-      font-weight: 800;
+      font-size: 24px;
+      font-weight: 900;
       letter-spacing: -0.5px;
       color: var(--text);
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #ffffff 0%, var(--muted) 180%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    body.light .game-title {
+      background: linear-gradient(180deg, #0b0e14 0%, #4a5568 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
     .game-sub {
       font-size: 12px;
@@ -78,8 +97,9 @@
       height: 36px;
       flex-shrink: 0;
       border-radius: 50%;
-      border: 1px solid var(--border);
+      border: 1px solid var(--surface-border);
       background: var(--surface);
+      backdrop-filter: blur(8px);
       color: var(--text);
       font-size: 15px;
       display: flex;
@@ -127,6 +147,7 @@
       border-bottom-color: transparent;
       padding-left: 10px;
       padding-right: 10px;
+      box-shadow: 0 0 20px var(--accent-glow);
     }
     .player-row.eliminated { opacity: 0.35; }
     .avatar {
@@ -142,7 +163,10 @@
       margin-right: 10px;
       flex-shrink: 0;
     }
-    .player-row.active .avatar { border-color: var(--text); }
+    .player-row.active .avatar { 
+      border-color: var(--accent-neon); 
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
     .player-info { flex: 1; min-width: 0; }
     .player-name {
       font-weight: 600;
@@ -167,7 +191,7 @@
       font-variant-numeric: tabular-nums;
     }
     .reps.elim { color: var(--muted); font-size: 11px; font-weight: 600; }
-    .arrow { margin: 0 5px; font-size: 14px; color: var(--text); opacity: 0; }
+    .arrow { margin: 0 5px; font-size: 14px; color: var(--accent-neon); opacity: 0; }
     .player-row.active .arrow { opacity: 1; animation: pulse 1s infinite; }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
@@ -196,6 +220,12 @@
       animation: blink 0.5s infinite;
     }
     @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .timer-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
     .current-player-name {
       font-size: 13px;
       font-weight: 700;
@@ -227,7 +257,7 @@
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
-      transition: transform 0.15s ease, background 0.25s ease, color 0.25s ease;
+      transition: transform 0.15s ease, background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
       font-family: inherit;
       touch-action: manipulation;
     }
@@ -242,6 +272,11 @@
       border: 1px solid var(--danger);
     }
     .btn-giveup:active { transform: scale(0.95); }
+    .btn-pause {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
 
     .stats-bar {
       display: flex;
@@ -270,7 +305,6 @@
     }
     .pass-hint strong { color: var(--text); }
 
-    /* ===== RESULTS SCREEN ===== */
     .results-screen { padding: 0; overflow-y: visible; }
     .results-header {
       padding: 24px 20px 18px;
@@ -425,101 +459,220 @@
       z-index: 200;
     }
 
-    .setup { padding: 0 0 18px; }
+    .setup { padding: 0 0 20px; }
     .setup h2 { text-align: center; margin-bottom: 16px; font-size: 16px; }
-    .input-group { margin: 0 18px 14px; }
+    .input-group { margin: 0 18px 16px; }
     .input-group label {
       display: block;
       font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .input-group input {
       width: 100%;
-      padding: 11px 12px;
+      padding: 12px 14px;
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
       color: var(--text);
       font-size: 13px;
       font-family: inherit;
-      transition: border-color 0.2s ease;
+      transition: all 0.25s ease;
     }
     .input-group input:focus {
       outline: none;
-      border-color: var(--text);
+      border-color: var(--accent-neon);
+      box-shadow: 0 0 12px var(--accent-glow);
     }
+    .input-group .error {
+      font-size: 11px;
+      color: var(--danger);
+      margin-top: 6px;
+      display: none;
+    }
+    .input-group .error.show { display: block; }
     .players-list {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 8px;
+      margin-top: 10px;
     }
     .chip {
       background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 5px 10px;
-      border-radius: 14px;
-      font-size: 11px;
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--surface-border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       color: var(--text);
+      transition: border-color 0.2s ease;
     }
-    .chip .remove { cursor: pointer; color: var(--danger); font-weight: 700; font-size: 13px; }
-    .start-btn { width: calc(100% - 36px); margin: 4px 18px 0; }
+    .chip:hover { border-color: var(--card-border); }
+    .chip .remove { 
+      cursor: pointer; 
+      color: var(--danger); 
+      font-weight: 800; 
+      font-size: 14px; 
+      margin-left: 2px;
+      line-height: 1;
+    }
+
+    .start-btn { 
+      width: calc(100% - 36px); 
+      margin: 8px 18px 0; 
+      padding: 15px;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      border-radius: 16px;
+      background: var(--accent-gradient);
+      color: #0b0e14;
+      box-shadow: 0 6px 20px var(--accent-glow);
+      border: none;
+    }
+    .start-btn:hover {
+      box-shadow: 0 8px 25px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+    .start-btn:active {
+      transform: translateY(1px) scale(0.98);
+    }
+    .start-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
     .hidden { display: none !important; }
 
     .mode-selector {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 8px;
       margin-top: 8px;
     }
     .mode-btn {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 12px 10px;
       text-align: center;
       cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       color: var(--text);
       font-family: inherit;
+      position: relative;
+    }
+    .mode-btn:hover {
+      border-color: var(--card-border);
     }
     .mode-btn.selected {
-      background: var(--invert-bg);
-      border-color: var(--invert-bg);
+      background: var(--card-bg);
+      border-color: var(--accent-neon);
+      box-shadow: 0 0 16px var(--accent-glow);
     }
-    .mode-btn.selected .mode-name { color: var(--invert-text); }
-    .mode-btn.selected .mode-desc { color: var(--invert-text); opacity: 0.6; }
-    .mode-btn .mode-emoji { font-size: 18px; display: block; margin-bottom: 3px; }
-    .mode-btn .mode-name { font-size: 11px; font-weight: 600; }
-    .mode-btn .mode-desc { font-size: 8px; color: var(--muted); margin-top: 2px; }
+    .mode-btn.selected .mode-name { color: var(--accent-neon); }
+    .mode-btn.selected .mode-desc { color: var(--text); opacity: 0.8; }
+    .mode-btn .mode-emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+    .mode-btn .mode-name { font-size: 12px; font-weight: 700; }
+    .mode-btn .mode-desc { font-size: 9px; color: var(--muted); margin-top: 3px; }
 
     .format-selector {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 8px;
       margin-top: 8px;
     }
     .format-btn {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
       padding: 12px;
       text-align: center;
       cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       color: var(--text);
       font-family: inherit;
     }
-    .format-btn .mode-name { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }
-    .format-btn.selected {
-      background: var(--invert-bg);
-      border-color: var(--invert-bg);
+    .format-btn:hover {
+      border-color: var(--card-border);
     }
-    .format-btn.selected .mode-name { color: var(--invert-text); }
+    .format-btn .mode-name { font-size: 12px; font-weight: 800; letter-spacing: 0.8px; }
+    .format-btn.selected {
+      background: var(--card-bg);
+      border-color: var(--accent-neon);
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .format-btn.selected .mode-name { color: var(--accent-neon); }
+
+    .confirm-modal {
+      padding: 24px;
+      text-align: center;
+    }
+    .confirm-modal h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .confirm-modal p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .confirm-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .pause-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 150;
+      backdrop-filter: blur(15px);
+      flex-direction: column;
+      gap: 20px;
+    }
+    .pause-overlay.show { display: flex; }
+    .pause-overlay h2 {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--text);
+    }
+    .pause-overlay .btn {
+      min-width: 200px;
+    }
+
+    .screen {
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .solo-record {
+      background: var(--accent-gradient);
+      color: #0b0e14;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 6px;
+    }
   </style>
 </head>
 <body>
@@ -527,13 +680,12 @@
 <canvas id="confetti-canvas"></canvas>
 
 <div class="phone">
-  <!-- Экран настройки -->
-  <div id="setupScreen" class="setup">
+  <div id="setupScreen" class="setup screen">
     <div class="header">
       <div class="header-top">
         <div>
           <div class="game-title">ЛЕСЕНКА</div>
-          <div class="game-sub">Групповая спортивная игра — на одном телефоне</div>
+          <div class="game-sub">Групповая спортивная игра - на одном телефоне</div>
         </div>
         <button class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тему">🌙</button>
       </div>
@@ -570,20 +722,20 @@
         <div class="mode-btn" data-mode="reverse" onclick="selectMode(this)">
           <span class="mode-emoji">📉</span>
           <span class="mode-name">Обратная</span>
-          <span class="mode-desc">10, 9, 8, 7...</span>
+          <span class="mode-desc">15, 14, 13...</span>
         </div>
       </div>
     </div>
     <div class="input-group" id="playersGroup">
-      <label>Игроки (введите всех)</label>
-      <input type="text" id="playerInput" placeholder="Введите имя и Enter" onkeydown="if(event.key==='Enter')addPlayer()">
+      <label>Игроки <span id="playerCount">(5)</span></label>
+      <input type="text" id="playerInput" placeholder="Введите имя и Enter" maxlength="20" onkeydown="if(event.key==='Enter')addPlayer()">
+      <div class="error" id="playerError">Максимум 12 игроков</div>
       <div class="players-list" id="playersList"></div>
     </div>
-    <button class="btn btn-done start-btn" onclick="startGame()">🚀 Начать игру</button>
+    <button class="btn btn-done start-btn" id="startBtn" onclick="startGame()">🚀 Начать игру</button>
   </div>
 
-  <!-- Экран игры -->
-  <div id="gameScreen" class="hidden">
+  <div id="gameScreen" class="hidden screen">
     <div class="header">
       <div class="header-top">
         <div>
@@ -618,8 +770,9 @@
     </div>
 
     <div class="timer-section">
-      <div class="timer-label">ОБЩЕЕ ВРЕМЯ ИГРЫ</div>
+      <div class="timer-label" id="timerLabel">ОБЩЕЕ ВРЕМЯ ИГРЫ</div>
       <div class="timer" id="timer">00:00</div>
+      <div class="timer-sub hidden" id="turnTimerSub"></div>
       <div class="current-player-name" id="currentPlayerName">
         <span class="label">Сейчас ходит:</span> —
       </div>
@@ -628,27 +781,55 @@
 
     <div class="actions" id="actionButtons">
       <button class="btn btn-done" onclick="completeTurn()">✅ ГОТОВО</button>
-      <button class="btn btn-giveup" onclick="giveUp()">❌ СДАЮСЬ</button>
+      <button class="btn btn-giveup" onclick="confirmGiveUp()">❌ СДАЮСЬ</button>
+    </div>
+    <div class="actions" id="pauseButtonContainer" style="padding-top:0;">
+      <button class="btn btn-pause" id="pauseBtn" onclick="togglePause()" style="grid-column: 1 / -1;">⏸️ ПАУЗА</button>
     </div>
 
   </div>
 </div>
 
-<!-- Модальное окно с результатами -->
 <div class="overlay" id="modal">
   <div class="modal results-screen" id="resultsContent"></div>
 </div>
 
+<div class="overlay" id="confirmModal">
+  <div class="modal confirm-modal">
+    <h3>Точно сдаешься?</h3>
+    <p>Это действие нельзя отменить. Ты выбудешь из текущего раунда.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-giveup" onclick="doGiveUp()">Да, сдаюсь</button>
+      <button class="btn btn-done" onclick="cancelGiveUp()">Нет, продолжить</button>
+    </div>
+  </div>
+</div>
+
+<div class="pause-overlay" id="pauseOverlay">
+  <h2>⏸️ ПАУЗА</h2>
+  <button class="btn btn-done" onclick="togglePause()">▶️ Продолжить</button>
+  <button class="btn btn-giveup" onclick="confirmQuit()">🚪 Выйти в меню</button>
+</div>
+
 <script>
   // ===== THEME =====
-  // Тема хранится только в памяти вкладки (без localStorage) — при перезагрузке
-  // страницы приложение возвращается к тёмной теме по умолчанию.
   function toggleTheme() {
     const isLight = document.body.classList.toggle('light');
     document.querySelectorAll('.theme-toggle').forEach(btn => {
-      btn.textContent = isLight ? '🌙' : '☀️';
+      btn.textContent = isLight ? '☀️' : '🌙';
     });
+    try { localStorage.setItem('lesenka-theme', isLight ? 'light' : 'dark'); } catch(e) {}
   }
+
+  (function initTheme() {
+    try {
+      const saved = localStorage.getItem('lesenka-theme');
+      if (saved === 'light') {
+        document.body.classList.add('light');
+        document.querySelectorAll('.theme-toggle').forEach(btn => btn.textContent = '☀️');
+      }
+    } catch(e) {}
+  })();
 
   // ===== AUDIO ENGINE =====
   let audioCtx = null;
@@ -665,15 +846,14 @@
   function playSound(type) {
     try {
       initAudio();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
       const now = audioCtx.currentTime;
 
       switch(type) {
-        case 'start':
+        case 'start': {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
           osc.frequency.setValueAtTime(523, now);
           osc.frequency.exponentialRampToValueAtTime(784, now + 0.1);
           gain.gain.setValueAtTime(0.15, now);
@@ -681,7 +861,12 @@
           osc.start(now);
           osc.stop(now + 0.15);
           break;
-        case 'done':
+        }
+        case 'done': {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
           osc.frequency.setValueAtTime(880, now);
           osc.frequency.exponentialRampToValueAtTime(1320, now + 0.1);
           gain.gain.setValueAtTime(0.2, now);
@@ -689,7 +874,12 @@
           osc.start(now);
           osc.stop(now + 0.2);
           break;
-        case 'giveup':
+        }
+        case 'giveup': {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
           osc.frequency.setValueAtTime(300, now);
           osc.frequency.exponentialRampToValueAtTime(150, now + 0.3);
           gain.gain.setValueAtTime(0.15, now);
@@ -697,6 +887,7 @@
           osc.start(now);
           osc.stop(now + 0.35);
           break;
+        }
         case 'win':
           [523, 659, 784, 1047].forEach((freq, i) => {
             const o = audioCtx.createOscillator();
@@ -710,20 +901,30 @@
             o.stop(now + i * 0.12 + 0.3);
           });
           break;
-        case 'newround':
+        case 'newround': {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
           osc.frequency.setValueAtTime(660, now);
           gain.gain.setValueAtTime(0.1, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
           osc.start(now);
           osc.stop(now + 0.1);
           break;
-        case 'tick':
+        }
+        case 'tick': {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
           osc.frequency.setValueAtTime(1000, now);
           gain.gain.setValueAtTime(0.05, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
           osc.start(now);
           osc.stop(now + 0.05);
           break;
+        }
       }
     } catch(e) { console.log('Audio error', e); }
   }
@@ -736,7 +937,7 @@
     canvas.height = window.innerHeight;
 
     const particles = [];
-    const colors = ['#ffd700', '#00d4aa', '#ff4757', '#667eea', '#f39c12', '#fff'];
+    const colors = ['#00ffaa', '#00b8ff', '#ff4757', '#ffd700', '#ffffff'];
 
     for (let i = 0; i < 150; i++) {
       particles.push({
@@ -789,20 +990,26 @@
     tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
-    tg.setHeaderColor('#0f0f1a');
-    tg.setBackgroundColor('#0f0f1a');
+    tg.setHeaderColor('#0b0e14');
+    tg.setBackgroundColor('#0b0e14');
   } catch(e) { console.log('Telegram WebApp not available'); }
 
   // ===== CONSTANTS =====
-  const MAX_REVERSE_ROUND = 15;     // верхняя граница для режима "Обратная" (10..1), дальше цель держится на 1
-  const TURN_TIME_LIMIT = 30;       // секунд на ход в режиме "На время"
-  const TURN_DELAY_MS = 400;        // пауза перед следующим ходом для читаемости UI
+  const MAX_REVERSE_START = 15;
+  const TURN_TIME_LIMIT = 30;
+  const TURN_DELAY_MS = 400;
   const CONFETTI_MAX_FRAMES = 200;
+  const MAX_PLAYERS = 12;
+  const SOLO_TARGET_ROUNDS = 20;
 
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    return str.replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
   }
 
   // ===== GAME STATE =====
@@ -813,15 +1020,24 @@
   let gameSeconds = 0;
   let gameHistory = [];
   let gameMode = 'classic';
-  let gameFormat = 'multi';   // 'multi' — компания с добавлением игроков, 'solo' — один игрок
-  let isSoloGame = false;     // фиксируется при старте, отключает правило "остался один — победа"
+  let gameFormat = 'multi';
+  let isSoloGame = false;
   let turnTimerInterval = null;
   let turnSeconds = 0;
   let currentTarget = 1;
   let randomTargets = [];
+  let isPaused = false;
+  let pendingGiveUp = false;
+  let soloBestRecord = 0;
 
   const defaultNames = ['Ты', 'Сергей', 'Анна', 'Дима', 'Катя'];
-  let savedMultiPlayers = defaultNames.slice(); // запоминаем ростер "Компании" при переключении в "Соло"
+  let savedMultiPlayers = defaultNames.slice();
+
+  // Load solo record
+  try {
+    const saved = localStorage.getItem('lesenka-solo-record');
+    if (saved) soloBestRecord = parseInt(saved, 10) || 0;
+  } catch(e) {}
 
   function selectFormat(el) {
     const newFormat = el.dataset.format;
@@ -841,6 +1057,7 @@
       renderPlayersList();
     }
     gameFormat = newFormat;
+    updateStartButton();
   }
 
   function selectMode(el) {
@@ -852,30 +1069,74 @@
   function addPlayer() {
     const input = document.getElementById('playerInput');
     const name = input.value.trim();
+    const errorEl = document.getElementById('playerError');
+
     if (!name) return;
+    if (players.length >= MAX_PLAYERS) {
+      errorEl.textContent = 'Максимум ' + MAX_PLAYERS + ' игроков';
+      errorEl.classList.add('show');
+      input.value = '';
+      return;
+    }
+
     const isDuplicate = players.some(p => p.toLowerCase() === name.toLowerCase());
-    if (isDuplicate) { input.value = ''; return; }
+    if (isDuplicate) {
+      errorEl.textContent = 'Игрок уже добавлен';
+      errorEl.classList.add('show');
+      input.value = '';
+      return;
+    }
+
+    errorEl.classList.remove('show');
     players.push(name);
     renderPlayersList();
     input.value = '';
+    updateStartButton();
   }
 
   function removePlayer(name) {
     players = players.filter(p => p !== name);
     renderPlayersList();
+    updateStartButton();
   }
 
   function renderPlayersList() {
     const list = document.getElementById('playersList');
-    list.innerHTML = players.map(p => {
-      const safe = escapeHtml(p);
-      const safeAttr = p.replace(/'/g, "\\'");
-      return `<div class="chip">${safe} <span class="remove" onclick="removePlayer('${safeAttr}')">×</span></div>`;
-    }).join('');
+    const countEl = document.getElementById('playerCount');
+    list.innerHTML = '';
+
+    players.forEach(p => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = p;
+      chip.appendChild(nameSpan);
+
+      const removeBtn = document.createElement('span');
+      removeBtn.className = 'remove';
+      removeBtn.textContent = '×';
+      removeBtn.onclick = function() { removePlayer(p); };
+      chip.appendChild(removeBtn);
+
+      list.appendChild(chip);
+    });
+
+    countEl.textContent = '(' + players.length + ')';
+  }
+
+  function updateStartButton() {
+    const btn = document.getElementById('startBtn');
+    if (gameFormat === 'solo') {
+      btn.disabled = false;
+    } else {
+      btn.disabled = players.length < 2;
+    }
   }
 
   defaultNames.forEach(n => { if (!players.includes(n)) players.push(n); });
   renderPlayersList();
+  updateStartButton();
 
   function getModeName() {
     const names = { classic: 'Классика', random: 'Рандом', timed: 'На время', reverse: 'Обратная' };
@@ -885,7 +1146,7 @@
   function getTargetForRound(round) {
     switch(gameMode) {
       case 'classic': return round;
-      case 'reverse': return Math.max(1, MAX_REVERSE_ROUND - round + 1);
+      case 'reverse': return Math.max(1, MAX_REVERSE_START - round + 1);
       case 'random': 
         if (!randomTargets[round - 1]) {
           randomTargets[round - 1] = Math.floor(Math.random() * 10) + 1;
@@ -897,22 +1158,39 @@
   }
 
   function getPlayersWord(n) {
-    return n === 1 ? 'игрок' : 'игроков';
+    const last = n % 10;
+    const lastTwo = n % 100;
+    if (lastTwo >= 11 && lastTwo <= 14) return 'игроков';
+    if (last === 1) return 'игрок';
+    if (last >= 2 && last <= 4) return 'игрока';
+    return 'игроков';
   }
 
+  function getRepsWord(n) {
+    const last = n % 10;
+    const lastTwo = n % 100;
+    if (lastTwo >= 11 && lastTwo <= 14) return 'повторений';
+    if (last === 1) return 'повторение';
+    if (last >= 2 && last <= 4) return 'повторения';
+    return 'повторений';
+  }
+
+  // ===== GAME FLOW =====
   function startGame() {
     initAudio();
     isSoloGame = gameFormat === 'solo';
+
     if (!isSoloGame && players.length < 2) {
       alert('Нужно минимум 2 игрока!');
       return;
     }
+
     document.getElementById('setupScreen').classList.add('hidden');
     document.getElementById('gameScreen').classList.remove('hidden');
-    document.getElementById('gameSub').textContent = `${getModeName()} | ${players.length} ${getPlayersWord(players.length)}`;
+    document.getElementById('gameSub').textContent = getModeName() + ' | ' + players.length + ' ' + getPlayersWord(players.length);
 
     players = players.map((name, i) => ({
-      name,
+      name: name,
       reps: 0,
       active: true,
       done: false,
@@ -926,7 +1204,14 @@
     gameSeconds = 0;
     gameHistory = [];
     randomTargets = [];
+    isPaused = false;
     currentTarget = getTargetForRound(1);
+
+    // UI setup
+    document.getElementById('timerLabel').textContent = gameMode === 'timed' ? 'ВРЕМЯ НА ХОД' : 'ОБЩЕЕ ВРЕМЯ ИГРЫ';
+    document.getElementById('turnTimerSub').classList.toggle('hidden', gameMode !== 'timed');
+    document.getElementById('pauseBtn').style.display = gameMode === 'timed' ? 'block' : 'none';
+    document.getElementById('pauseButtonContainer').style.display = gameMode === 'timed' ? 'grid' : 'none';
 
     startGameTimer();
     startRound();
@@ -936,17 +1221,16 @@
   function startGameTimer() {
     clearInterval(gameTimerInterval);
     gameTimerInterval = setInterval(() => {
-      gameSeconds++;
-      updateTotalTimer();
+      if (!isPaused) {
+        gameSeconds++;
+        updateTotalTimer();
+      }
     }, 1000);
   }
 
   function updateTotalTimer() {
     const timeStr = formatTime(gameSeconds);
     document.getElementById('totalTime').textContent = timeStr;
-    // В режиме "На время" крупный дисплей #timer занят обратным отсчётом хода
-    // (см. updateTurnTimerDisplay). Если писать сюда ещё и общее время игры,
-    // два независимых интервала конкурируют за один элемент и цифры на миг "прыгают".
     if (gameMode !== 'timed') {
       document.getElementById('timer').textContent = timeStr;
     }
@@ -958,6 +1242,7 @@
     turnSeconds = TURN_TIME_LIMIT;
     updateTurnTimerDisplay();
     turnTimerInterval = setInterval(() => {
+      if (isPaused) return;
       turnSeconds--;
       updateTurnTimerDisplay();
       if (turnSeconds <= 5 && turnSeconds > 0) playSound('tick');
@@ -973,47 +1258,55 @@
     timerEl.textContent = formatTime(turnSeconds);
     if (turnSeconds <= 5) timerEl.classList.add('danger');
     else timerEl.classList.remove('danger');
+
+    if (gameMode === 'timed') {
+      document.getElementById('turnTimerSub').textContent = 'Общее: ' + formatTime(gameSeconds);
+    }
   }
 
   function startRound() {
+    // Check reverse mode end condition
+    if (gameMode === 'reverse') {
+      const target = getTargetForRound(currentRound);
+      if (target <= 0 || currentRound > MAX_REVERSE_START) {
+        const survivors = players.filter(p => p.active);
+        endGame(survivors.length === 1 ? survivors[0] : null);
+        return;
+      }
+    }
+
     players.forEach(p => { if (p.active) p.done = false; });
     currentPlayerIndex = 0;
     currentTarget = getTargetForRound(currentRound);
     document.getElementById('statReps').textContent = currentTarget;
 
-    const targetText = gameMode === 'random' ? `Цель: ${currentTarget} reps` : '';
+    const targetText = gameMode === 'random' ? 'Цель: ' + currentTarget + ' ' + getRepsWord(currentTarget) : '';
     document.getElementById('randomTarget').textContent = targetText;
 
     playSound('newround');
     nextTurn();
   }
 
-  function getRepsWord(n) {
-    const last = n % 10;
-    const lastTwo = n % 100;
-    if (lastTwo >= 11 && lastTwo <= 14) return 'повторений';
-    if (last === 1) return 'повторение';
-    if (last >= 2 && last <= 4) return 'повторения';
-    return 'повторений';
-  }
-
   function nextTurn() {
+    // Find next active player who has not done their turn
     while (currentPlayerIndex < players.length) {
-      if (players[currentPlayerIndex].active && !players[currentPlayerIndex].done) {
+      const p = players[currentPlayerIndex];
+      if (p.active && !p.done) {
         renderPlayers();
         if (gameMode === 'timed') startTurnTimer();
         return;
       }
       currentPlayerIndex++;
     }
+
+    // All active players have taken their turn - start new round
     currentRound++;
-    playSound('newround');
     startRound();
   }
 
   function renderPlayers() {
     const container = document.getElementById('playersContainer');
-    document.getElementById('roundBadge').textContent = `Раунд ${currentRound}`;
+    document.getElementById('roundBadge').textContent = 'Раунд ' + currentRound;
 
     const activeCount = players.filter(p => p.active).length;
     const elimCount = players.filter(p => !p.active).length;
@@ -1021,32 +1314,69 @@
     document.getElementById('statEliminated').textContent = elimCount;
 
     const current = players[currentPlayerIndex];
+    const currentName = current ? escapeHtml(current.name) : '—';
+
+    let recordBadge = '';
+    if (isSoloGame && soloBestRecord > 0) {
+      recordBadge = ' <span class="solo-record">🏆 Рекорд: ' + soloBestRecord + '</span>';
+    }
+
     document.getElementById('currentPlayerName').innerHTML = 
-      `<span class="label">Сейчас ходит:</span> ${current ? escapeHtml(current.name) : '—'}`;
+      '<span class="label">Сейчас ходит:</span> ' + currentName + recordBadge;
 
-    container.innerHTML = players.map((p, i) => {
-      const isActive = i === currentPlayerIndex && p.active && !p.done;
-      const repsText = p.active 
-        ? (p.done ? `${currentTarget} ${getRepsWord(currentTarget)}` : (isActive ? `${currentTarget} ${getRepsWord(currentTarget)} ⏱` : '...'))
-        : `выбыл (раунд ${p.outRound})`;
-      const repsClass = p.done ? 'done' : (p.active ? '' : 'elim');
-      const arrow = isActive ? '→' : (p.done ? '✓' : '');
+    container.innerHTML = '';
 
-      return `
-        <div class="player-row ${isActive ? 'active' : ''} ${!p.active ? 'eliminated' : ''}">
-          <div class="avatar">👤</div>
-          <div class="player-info">
-            <div class="player-name">${escapeHtml(p.name)}</div>
-            <div class="player-status">${p.active ? (isActive ? 'Твой ход! Делай упражнение' : (p.done ? 'Выполнено' : 'Ожидает...')) : 'Выбыл'} ${p.totalReps > 0 ? `· Всего: ${p.totalReps}` : ''}</div>
-          </div>
-          <div class="arrow">${arrow}</div>
-          <div class="reps ${repsClass}">${repsText}</div>
-        </div>
-      `;
-    }).join('');
+    players.forEach((p, i) => {
+      const isCurrent = i === currentPlayerIndex;
+      const isActiveTurn = isCurrent && p.active && !p.done;
+
+      const row = document.createElement('div');
+      row.className = 'player-row' + (isActiveTurn ? ' active' : '') + (!p.active ? ' eliminated' : '');
+
+      let repsText, repsClass, arrow;
+
+      if (!p.active) {
+        repsText = 'выбыл (раунд ' + p.outRound + ')';
+        repsClass = 'elim';
+        arrow = '';
+      } else if (p.done) {
+        repsText = currentTarget + ' ' + getRepsWord(currentTarget);
+        repsClass = 'done';
+        arrow = '✓';
+      } else if (isCurrent) {
+        repsText = currentTarget + ' ' + getRepsWord(currentTarget) + ' ⏱';
+        repsClass = '';
+        arrow = '→';
+      } else {
+        repsText = '...';
+        repsClass = '';
+        arrow = '';
+      }
+
+      let statusText;
+      if (!p.active) statusText = 'Выбыл';
+      else if (isActiveTurn) statusText = 'Твой ход! Делай упражнение';
+      else if (p.done) statusText = 'Выполнено';
+      else statusText = 'Ожидает...';
+
+      if (p.totalReps > 0) statusText += ' · Всего: ' + p.totalReps;
+
+      row.innerHTML = 
+        '<div class="avatar">👤</div>' +
+        '<div class="player-info">' +
+          '<div class="player-name">' + escapeHtml(p.name) + '</div>' +
+          '<div class="player-status">' + statusText + '</div>' +
+        '</div>' +
+        '<div class="arrow">' + arrow + '</div>' +
+        '<div class="reps ' + repsClass + '">' + repsText + '</div>';
+
+      container.appendChild(row);
+    });
   }
 
+  // ===== TURN ACTIONS =====
   function completeTurn() {
+    if (isPaused) return;
     const p = players[currentPlayerIndex];
     if (!p || !p.active || p.done) return;
 
@@ -1065,6 +1395,31 @@
 
     playSound('done');
     advanceTurn();
+  }
+
+  function confirmGiveUp() {
+    if (isPaused) return;
+    pendingGiveUp = true;
+    document.getElementById('confirmModal').classList.add('show');
+    if (gameMode === 'timed') {
+      isPaused = true;
+      clearInterval(turnTimerInterval);
+    }
+  }
+
+  function cancelGiveUp() {
+    pendingGiveUp = false;
+    document.getElementById('confirmModal').classList.remove('show');
+    if (gameMode === 'timed' && isPaused) {
+      isPaused = false;
+      startTurnTimer();
+    }
+  }
+
+  function doGiveUp() {
+    pendingGiveUp = false;
+    document.getElementById('confirmModal').classList.remove('show');
+    giveUp();
   }
 
   function giveUp() {
@@ -1086,127 +1441,163 @@
     advanceTurn();
   }
 
-  // Общая логика перехода хода после completeTurn()/giveUp():
-  // останавливает таймер хода, двигает указатель игрока и либо
-  // завершает игру, либо передаёт ход дальше.
-  // В соло-режиме правило "остался один — победа" не действует (игрок один всегда):
-  // игра идёт, пока не нажата "СДАЮСЬ".
   function advanceTurn() {
     if (gameMode === 'timed') clearInterval(turnTimerInterval);
 
-    currentPlayerIndex++;
-
     const activePlayers = players.filter(pl => pl.active);
+    const allDone = activePlayers.every(pl => pl.done);
 
-    if (isSoloGame) {
+    // Check win conditions
+    if (!isSoloGame) {
+      if (activePlayers.length <= 1) {
+        endGame(activePlayers[0] || null);
+        return;
+      }
+    } else {
+      // Solo: check if player reached target rounds
+      const soloPlayer = activePlayers[0];
+      if (soloPlayer && soloPlayer.roundsCompleted.length >= SOLO_TARGET_ROUNDS) {
+        if (currentRound > soloBestRecord) {
+          soloBestRecord = currentRound;
+          try { localStorage.setItem('lesenka-solo-record', soloBestRecord); } catch(e) {}
+        }
+        endGame(soloPlayer);
+        return;
+      }
+      // Solo: if player gave up (not active), game over
       if (activePlayers.length === 0) {
         endGame(null);
         return;
       }
-      setTimeout(nextTurn, TURN_DELAY_MS);
+    }
+
+    // If all active players completed their turn, start new round
+    if (allDone) {
+      currentRound++;
+      currentPlayerIndex = 0;
+      setTimeout(() => startRound(), TURN_DELAY_MS);
       return;
     }
 
-    if (activePlayers.length <= 1) {
-      endGame(activePlayers[0] || null);
-      return;
-    }
-
+    // Move to next player
+    currentPlayerIndex++;
     setTimeout(nextTurn, TURN_DELAY_MS);
   }
 
-  // Единый порядок ранжирования игроков: сначала победитель(и), затем
-  // выбывшие по убыванию totalReps. Используется в endGame() для итогового экрана.
+  // ===== PAUSE =====
+  function togglePause() {
+    if (gameMode !== 'timed') return;
+
+    isPaused = !isPaused;
+    const overlay = document.getElementById('pauseOverlay');
+
+    if (isPaused) {
+      clearInterval(turnTimerInterval);
+      overlay.classList.add('show');
+    } else {
+      overlay.classList.remove('show');
+      if (turnSeconds > 0) {
+        turnTimerInterval = setInterval(() => {
+          if (isPaused) return;
+          turnSeconds--;
+          updateTurnTimerDisplay();
+          if (turnSeconds <= 5 && turnSeconds > 0) playSound('tick');
+          if (turnSeconds <= 0) {
+            clearInterval(turnTimerInterval);
+            giveUp();
+          }
+        }, 1000);
+      }
+    }
+  }
+
+  function confirmQuit() {
+    isPaused = false;
+    document.getElementById('pauseOverlay').classList.remove('show');
+    endGame(null);
+  }
+
+  // ===== END GAME =====
   function getRankedPlayers() {
     return [...players].sort((a, b) => {
       if (a.active && !b.active) return -1;
       if (!a.active && b.active) return 1;
-      return b.totalReps - a.totalReps;
+      if (a.active && b.active) return b.totalReps - a.totalReps;
+      return (b.outRound || 0) - (a.outRound || 0);
     });
   }
 
   function endGame(winner) {
     clearInterval(gameTimerInterval);
     clearInterval(turnTimerInterval);
+    isPaused = false;
+    document.getElementById('pauseOverlay').classList.remove('show');
 
     const totalTime = formatTime(gameSeconds);
     const totalRepsAll = players.reduce((sum, p) => sum + p.totalReps, 0);
-
     const sortedPlayers = getRankedPlayers();
-
     const medals = ['🥇', '🥈', '🥉'];
 
-    let resultsHTML = `
-      <div class="results-header">
-        <div class="game-title">ИТОГИ ИГРЫ</div>
-        <div class="game-sub">ЛЕСЕНКА · ${getModeName()}</div>
-        <div class="results-summary">
-          <div class="results-summary-item">
-            <div class="val">${totalTime}</div>
-            <div class="lbl">Время</div>
-          </div>
-          <div class="results-summary-item">
-            <div class="val">${currentRound}</div>
-            <div class="lbl">Раундов</div>
-          </div>
-          <div class="results-summary-item">
-            <div class="val">${totalRepsAll}</div>
-            <div class="lbl">Всего reps</div>
-          </div>
-        </div>
-      </div>
-      <div class="results-list">
-    `;
+    let resultsHTML = '<div class="results-header">' +
+      '<div class="game-title">ИТОГИ ИГРЫ</div>' +
+      '<div class="game-sub">ЛЕСЕНКА · ' + getModeName() + '</div>' +
+      '<div class="results-summary">' +
+        '<div class="results-summary-item"><div class="val">' + totalTime + '</div><div class="lbl">Время</div></div>' +
+        '<div class="results-summary-item"><div class="val">' + currentRound + '</div><div class="lbl">Раундов</div></div>' +
+        '<div class="results-summary-item"><div class="val">' + totalRepsAll + '</div><div class="lbl">Всего reps</div></div>' +
+      '</div></div><div class="results-list">';
 
     sortedPlayers.forEach((p, idx) => {
       const isWinner = p.active;
       const rank = idx + 1;
       const medal = idx < 3 ? medals[idx] : '';
-      const statusText = isWinner 
-        ? `🏆 Победитель! Выдержал все ${currentRound} раундов`
-        : `😵 Выбыл на ${p.outRound} раунде`;
+
+      let statusText;
+      if (isSoloGame) {
+        if (isWinner) {
+          statusText = '🏆 Пройдено ' + currentRound + ' раундов! Новый рекорд?';
+        } else {
+          statusText = '😵 Сдался на ' + p.outRound + ' раунде';
+        }
+      } else {
+        if (isWinner) {
+          statusText = '🏆 Победитель! Выдержал все ' + currentRound + ' раундов';
+        } else {
+          statusText = '😵 Выбыл на ' + p.outRound + ' раунде';
+        }
+      }
 
       let roundsDetail = '';
       if (p.roundsCompleted.length > 0) {
-        const roundsStr = p.roundsCompleted.map(r => `<span class="round-done">${r}</span>`).join(', ');
-        roundsDetail = `<div class="result-rounds-detail">✅ Пройдены раунды: ${roundsStr}</div>`;
+        const roundsStr = p.roundsCompleted.map(r => '<span class="round-done">' + r + '</span>').join(', ');
+        roundsDetail = '<div class="result-rounds-detail">✅ Пройдены раунды: ' + roundsStr + '</div>';
       }
 
-      resultsHTML += `
-        <div class="result-card ${isWinner ? 'winner' : ''}">
-          <div class="result-rank">#${rank}</div>
-          <div class="result-top">
-            <div class="result-avatar">${medal || '👤'}</div>
-            <div>
-              <div class="result-name">${escapeHtml(p.name)} ${isWinner ? '<span class="winner-tag">ПОБЕДИТЕЛЬ</span>' : ''}</div>
-              <div class="result-status">${statusText}</div>
-            </div>
-          </div>
-          <div class="result-stats-grid">
-            <div class="result-stat-box">
-              <div class="rs-val">${p.totalReps}</div>
-              <div class="rs-lbl">Всего reps</div>
-            </div>
-            <div class="result-stat-box">
-              <div class="rs-val">${p.roundsCompleted.length}</div>
-              <div class="rs-lbl">Раундов пройдено</div>
-            </div>
-            <div class="result-stat-box">
-              <div class="rs-val">${p.outRound || currentRound}</div>
-              <div class="rs-lbl">Высший раунд</div>
-            </div>
-          </div>
-          ${roundsDetail}
-        </div>
-      `;
+      let recordHtml = '';
+      if (isSoloGame && isWinner && soloBestRecord > 0) {
+        recordHtml = '<div style="font-size:10px;color:var(--accent-neon);margin-top:4px;">🏆 Лучший рекорд: ' + soloBestRecord + ' раундов</div>';
+      }
+
+      resultsHTML += '<div class="result-card ' + (isWinner ? 'winner' : '') + '">' +
+        '<div class="result-rank">#' + rank + '</div>' +
+        '<div class="result-top">' +
+          '<div class="result-avatar">' + (medal || '👤') + '</div>' +
+          '<div>' +
+            '<div class="result-name">' + escapeHtml(p.name) + (isWinner ? '<span class="winner-tag">ПОБЕДИТЕЛЬ</span>' : '') + '</div>' +
+            '<div class="result-status">' + statusText + '</div>' +
+            recordHtml +
+          '</div>' +
+        '</div>' +
+        '<div class="result-stats-grid">' +
+          '<div class="result-stat-box"><div class="rs-val">' + p.totalReps + '</div><div class="rs-lbl">Всего reps</div></div>' +
+          '<div class="result-stat-box"><div class="rs-val">' + p.roundsCompleted.length + '</div><div class="rs-lbl">Раундов пройдено</div></div>' +
+          '<div class="result-stat-box"><div class="rs-val">' + (p.outRound || currentRound) + '</div><div class="rs-lbl">Высший раунд</div></div>' +
+        '</div>' +
+        roundsDetail +
+      '</div>';
     });
 
-    resultsHTML += `
-      </div>
-      <div class="results-actions">
-        <button class="btn btn-done" onclick="resetGame()">🔄 Новая игра</button>
-      </div>
-    `;
+    resultsHTML += '</div><div class="results-actions"><button class="btn btn-done" onclick="resetGame()">🔄 Новая игра</button></div>';
 
     document.getElementById('resultsContent').innerHTML = resultsHTML;
     document.getElementById('modal').classList.add('show');
@@ -1217,14 +1608,14 @@
     }
 
     if (tg) {
-      tg.HapticFeedback.notificationOccurred('success');
+      tg.HapticFeedback.notificationOccurred(winner ? 'success' : 'error');
     }
   }
 
   function formatTime(sec) {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
     const s = (sec % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
+    return m + ':' + s;
   }
 
   function resetGame() {
@@ -1235,15 +1626,19 @@
     if (gameFormat === 'solo') {
       players = ['Ты'];
     } else {
-      players = [];
-      defaultNames.forEach(n => players.push(n));
+      players = savedMultiPlayers.slice();
       renderPlayersList();
     }
 
     document.getElementById('timer').textContent = '00:00';
     document.getElementById('timer').classList.remove('danger');
     document.getElementById('randomTarget').textContent = '';
+    document.getElementById('turnTimerSub').classList.add('hidden');
     clearInterval(turnTimerInterval);
+    clearInterval(gameTimerInterval);
+    isPaused = false;
+    randomTargets = [];
+    updateStartButton();
   }
 
   document.addEventListener('DOMContentLoaded', () => {
